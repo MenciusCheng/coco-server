@@ -1,6 +1,7 @@
 package api
 
 import (
+	"coco-server/api/handler"
 	"coco-server/conf"
 	"coco-server/util/log"
 	"context"
@@ -12,11 +13,14 @@ import (
 )
 
 var router = func() *gin.Engine {
-	return gin.Default()
+	router := gin.Default()
+	router.Use(handler.Cors())
+	return router
 }()
 
 func GetRouterGroup() *gin.RouterGroup {
-	return router.Group("/api")
+	routerGroup := router.Group("/api")
+	return routerGroup
 }
 
 // 初始化路由
