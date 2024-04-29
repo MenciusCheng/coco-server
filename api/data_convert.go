@@ -5,6 +5,7 @@ import (
 	"coco-server/model"
 	"coco-server/model/common/request"
 	"coco-server/model/common/response"
+	"coco-server/util/generator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,6 +15,7 @@ func init() {
 	routerGroup.POST("/dataConvert/create", DataConvertApi.Create)
 	routerGroup.POST("/dataConvert/update", DataConvertApi.Update)
 	routerGroup.POST("/dataConvert/delete", DataConvertApi.Delete)
+	routerGroup.POST("/dataConvert/gen", DataConvertApi.Gen)
 }
 
 type dataConvertApi struct{}
@@ -49,12 +51,16 @@ func (a *dataConvertApi) Create(c *gin.Context) {
 		return
 	}
 
-	if err := dao.DataConvertDB.InsertDataConvert(ctx, req); err != nil {
+	id, err := dao.DataConvertDB.Create(ctx, req)
+	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 
-	response.Ok(c)
+	res := map[string]interface{}{
+		"id": id,
+	}
+	response.OkWithData(res, c)
 	return
 }
 
@@ -88,5 +94,45 @@ func (a *dataConvertApi) Delete(c *gin.Context) {
 	}
 
 	response.Ok(c)
+	return
+}
+
+func (a *dataConvertApi) Gen(c *gin.Context) {
+	//ctx := c.Request.Context()
+	req := new(model.DataConvertGenReq)
+	if err := c.ShouldBind(&req); err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	var g *generator.Generator
+	switch req.DataSourceType {
+	case "tabRow":
+		g = generator.NewGenerator(generator.ConfigParser(generator.ParserTabRow))
+	case "json":
+		g = generator.NewGenerator(generator.ConfigParser(generator.ParserJson))
+	case "sql":
+		g = generator.NewGenerator(generator.ConfigParser(generator.ParserSQL))
+	default:
+		g = generator.NewGenerator(generator.ConfigParser(generator.ParserTabRow))
+	}
+
+	g.Source(req.DataSource)
+	err := g.Temp(req.Template)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	content := g.Exec()
+	res := model.DataConvertGenRes{
+		List: []model.DataConvertGenData{
+			{
+				Name:    "1",
+				Content: content,
+			},
+		},
+	}
+	response.OkWithData(res, c)
 	return
 }

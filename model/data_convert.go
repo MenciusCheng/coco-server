@@ -37,3 +37,18 @@ type DataConvertGetListReq struct {
 	Page     int    `json:"page"`     // 页码
 	Size     int    `json:"size"`     // 每页大小
 }
+
+type DataConvertGenReq struct {
+	DataSourceType string `json:"dataSourceType"` // 数据类型
+	DataSource     string `json:"dataSource"`     // 数据源
+	Template       string `json:"template"`       // 模板内容
+}
+
+type DataConvertGenRes struct {
+	List []DataConvertGenData `json:"list"`
+}
+
+type DataConvertGenData struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
+}

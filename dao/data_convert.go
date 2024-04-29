@@ -33,7 +33,7 @@ func (dao *dataConvertDao) QueryDataConvertRecords(ctx context.Context, filter *
 	}
 
 	query.Count(&count)
-	query.Offset(filter.Offset).Limit(filter.Limit).Find(&records)
+	query.Order("id desc").Offset(filter.Offset).Limit(filter.Limit).Find(&records)
 	return records, count
 }
 
@@ -42,6 +42,11 @@ func (dao *dataConvertDao) QueryDataConvertRecords(ctx context.Context, filter *
 func (dao *dataConvertDao) InsertDataConvert(ctx context.Context, v *model.DataConvert) error {
 	sql := "INSERT INTO `data_convert` (`conf_name`,`conf_content`) VALUES (?,?)"
 	return db.MySQLCon.Exec(sql, v.ConfName, v.ConfContent).Error
+}
+
+func (dao *dataConvertDao) Create(ctx context.Context, v *model.DataConvert) (int64, error) {
+	err := db.MySQLCon.Omit("created_at", "updated_at").Create(&v).Error
+	return v.Id, err
 }
 
 // update mysql table data_convert use model DataConvert
