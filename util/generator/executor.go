@@ -3,7 +3,6 @@ package generator
 import (
 	"bytes"
 	"coco-server/util/generator/parse"
-	"log"
 	"strings"
 	"text/template"
 )
@@ -18,14 +17,13 @@ func defaultTemplate() *template.Template {
 func TempExecutor(data map[string]interface{}, tmplText string) string {
 	t, err := defaultTemplate().Parse(tmplText)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	var b bytes.Buffer
 	err = t.Execute(&b, data)
 	if err != nil {
-		log.Fatal(err)
-		return ""
+		panic(err)
 	}
 	return b.String()
 }
@@ -39,14 +37,13 @@ func WithTempExecutor(t *template.Template) ExecutorFunc {
 
 		t, err = t.Parse(tmplText)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		var b bytes.Buffer
 		err = t.Execute(&b, data)
 		if err != nil {
-			log.Fatal(err)
-			return ""
+			panic(err)
 		}
 		return b.String()
 	}

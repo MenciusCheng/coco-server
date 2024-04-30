@@ -3,7 +3,6 @@ package generator
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 )
@@ -182,7 +181,7 @@ func ParserJson(text string) map[string]interface{} {
 	res := make(map[string]interface{})
 	err := json.Unmarshal([]byte(text), &res)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	return res
 }
