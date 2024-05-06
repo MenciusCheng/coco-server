@@ -27,7 +27,7 @@ func main() {
 	// init api
 	api.InitApi(ctx)
 
-	log.Info(ctx, "Server Start", zap.String("ServiceName", conf.Conf.ServiceName))
+	log.Info(ctx, "Server Start", zap.String("ServiceName", conf.Conf.ServiceName), zap.Any("port", conf.Conf.Api.Port))
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

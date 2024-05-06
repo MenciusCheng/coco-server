@@ -5,7 +5,7 @@ import (
 	"coco-server/model"
 	"coco-server/model/common/request"
 	"coco-server/model/common/response"
-	"coco-server/util/generator"
+	"coco-server/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -98,41 +98,18 @@ func (a *dataConvertApi) Delete(c *gin.Context) {
 }
 
 func (a *dataConvertApi) Gen(c *gin.Context) {
-	//ctx := c.Request.Context()
+	ctx := c.Request.Context()
 	req := new(model.DataConvertGenReq)
 	if err := c.ShouldBind(&req); err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 
-	var g *generator.Generator
-	switch req.DataSourceType {
-	case "tabRow":
-		g = generator.NewGenerator(generator.ConfigParser(generator.ParserTabRow))
-	case "json":
-		g = generator.NewGenerator(generator.ConfigParser(generator.ParserJson))
-	case "sql":
-		g = generator.NewGenerator(generator.ConfigParser(generator.ParserSQL))
-	default:
-		g = generator.NewGenerator(generator.ConfigParser(generator.ParserTabRow))
-	}
-
-	g.Source(req.DataSource)
-	err := g.Temp(req.Template)
+	res, err := service.DataConvertService.Gen(ctx, req)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 
-	content := g.Exec()
-	res := model.DataConvertGenRes{
-		List: []model.DataConvertGenData{
-			{
-				Name:    "1",
-				Content: content,
-			},
-		},
-	}
 	response.OkWithData(res, c)
-	return
 }
