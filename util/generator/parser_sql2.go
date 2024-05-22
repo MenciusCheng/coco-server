@@ -1,0 +1,132 @@
+package generator
+
+import (
+	"coco-server/util/log"
+	"context"
+	"encoding/json"
+	"go.uber.org/zap"
+	"regexp"
+	"strings"
+)
+
+type SqlTable struct {
+	SqlHead
+	SqlFoot
+	Rows []SqlField `json:"rows"`
+}
+
+type SqlHead struct {
+	TableName string `json:"tableName"`
+}
+
+type SqlField struct {
+	ColName string `json:"colName"`
+	ColType string `json:"colType"`
+	Comment string `json:"comment"`
+}
+
+type SqlFoot struct {
+	Comment string `json:"comment"`
+}
+
+func CalSqlHead(line string) *SqlHead {
+	headReg := regexp.MustCompile("^\\s*CREATE\\s+TABLE\\s+([a-zA-Z0-9_`]+\\.)?([a-zA-Z0-9_`]+)\\s*\\(\\s*$") // CREATE TABLE tbl_name
+	if !headReg.MatchString(line) {
+		return nil
+	}
+	submatch := headReg.FindStringSubmatch(line)
+	if len(submatch) < 3 {
+		return nil
+	}
+
+	tableName := strings.Trim(submatch[2], "`")
+	return &SqlHead{
+		TableName: tableName,
+	}
+}
+
+func CalSqlField(line string) *SqlField {
+	fieldReg := regexp.MustCompile("^\\s*([a-zA-Z0-9_`]+)\\s+([a-zA-Z0-9()]+)\\s+") // col_name column_definition
+	if !fieldReg.MatchString(line) {
+		return nil
+	}
+	submatch := fieldReg.FindStringSubmatch(line)
+	if len(submatch) < 3 {
+		return nil
+	}
+	res := &SqlField{
+		ColName: strings.Trim(submatch[1], "`"),
+		ColType: submatch[2],
+	}
+
+	fieldCommentReg := regexp.MustCompile("\\s+COMMENT\\s+'(.+)',?\\s*$") // COMMENT
+	commentSubmatch := fieldCommentReg.FindStringSubmatch(line)
+	if len(commentSubmatch) >= 2 {
+		res.Comment = commentSubmatch[1]
+	}
+
+	return res
+}
+
+func CalSqlFoot(line string) *SqlFoot {
+	footReg := regexp.MustCompile("^\\s*\\)")
+	if !footReg.MatchString(line) {
+		return nil
+	}
+	res := &SqlFoot{}
+
+	footCommentReg := regexp.MustCompile("COMMENT\\s*=\\s*'(.+)'\\S*;?$")
+	commentSubmatch := footCommentReg.FindStringSubmatch(line)
+	if len(commentSubmatch) >= 2 {
+		res.Comment = commentSubmatch[1]
+	}
+	return res
+}
+
+func ParserSQL2(text string) map[string]interface{} {
+	res := make(map[string]interface{})
+
+	sqlTable := SqlTable{}
+	lines := strings.Split(text, "\n")
+	for _, line := range lines {
+		// 清洗
+		lineData := strings.TrimSpace(line)
+		if len(lineData) == 0 {
+			continue
+		}
+
+		if strings.HasPrefix(lineData, "PRIMARY KEY") {
+			// 预留
+		} else if strings.HasPrefix(lineData, "KEY") {
+			// 预留
+		} else if CalSqlHead(lineData) != nil {
+			sqlHead := CalSqlHead(lineData)
+			if sqlHead != nil {
+				sqlTable.TableName = sqlHead.TableName
+			}
+		} else if CalSqlField(lineData) != nil {
+			sqlField := CalSqlField(lineData)
+			if sqlField != nil {
+				sqlTable.Rows = append(sqlTable.Rows, *sqlField)
+			}
+		} else if CalSqlFoot(lineData) != nil {
+			sqlFoot := CalSqlFoot(lineData)
+			if sqlFoot != nil {
+				sqlTable.Comment = sqlFoot.Comment
+			}
+		}
+	}
+	bytes, err := json.Marshal(sqlTable)
+	if err != nil {
+		log.Error(context.TODO(), "Marshal failed", zap.Error(err))
+		return res
+	}
+
+	err = json.Unmarshal(bytes, &res)
+	if err != nil {
+		log.Error(context.TODO(), "Unmarshal failed", zap.Error(err))
+		return res
+	}
+
+	return res
+}

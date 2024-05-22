@@ -21,6 +21,7 @@ func GetFuncMap() template.FuncMap {
 		"FloatToIntString":      FloatToIntString,
 		"InterfaceToString":     InterfaceToString,
 		"InterfaceToJsonString": InterfaceToJsonString,
+		"HasPrefix":             strings.HasPrefix,
 	}
 }
 
