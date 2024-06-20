@@ -54,7 +54,7 @@ func TestGenStream_Reg(t *testing.T) {
 	})
 	configs = append(configs, ParserConfig{
 		Type: "json",
-		Text: `{"name":"act_god"}`,
+		Text: `{"name":"act_god_nobility"}`,
 	})
 	configs = append(configs, ParserConfig{
 		Type: "temp",
@@ -72,7 +72,24 @@ func (extObj *ActivityExtObj) {{ index $row 2 }}(ctx context.Context, req *pb.{{
 	return {{ $obj.name }}.{{ SnakeToCamel $obj.name }}HandlerObj.{{ index $row 2 }}(ctx, req)
 }
 {{ end }}`,
-		Opts: []ParserOption{{Type: "name", Value: "res"}},
+		Opts: []ParserOption{{Type: "name", Value: "activity_ext_obj.go"}},
+	})
+	configs = append(configs, ParserConfig{
+		Type: "temp",
+		Text: `
+{{- $obj := .Obj }}
+
+type {{ SnakeToCamel $obj.name | LowerFirst }}Handler struct{}
+
+var {{ SnakeToCamel $obj.name }}HandlerObj = new({{ SnakeToCamel $obj.name | LowerFirst }}Handler)
+{{ range $index, $row := .Rows }}
+// {{ index $row 1 }}
+func (obj *{{ SnakeToCamel $obj.name | LowerFirst }}Handler) {{ index $row 2 }}(ctx context.Context, req *pb.{{ index $row 3 }}) (*pb.{{ index $row 4 }}, error) {
+	res := new(pb.{{ index $row 4 }})
+	return res, nil
+}
+{{ end }}`,
+		Opts: []ParserOption{{Type: "name", Value: "Handler"}},
 	})
 
 	res, err := NewGenStream(configs).Gen(context.TODO())
