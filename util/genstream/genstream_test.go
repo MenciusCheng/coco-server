@@ -42,10 +42,10 @@ func TestGenStream_Reg(t *testing.T) {
 	configs = append(configs, ParserConfig{
 		Type: "text",
 		Text: `
-  // 帝神活动-封神爵位榜单列表
-  rpc ListActGodNobilitySort(ListActGodNobilitySortReq) returns (ListActGodNobilitySortRes);
-  // 帝神活动-帝神殿榜单列表
-  rpc ListActGodTempleSort(ListActGodTempleSortReq) returns (ListActGodTempleSortRes);
+  // 请求接口1
+  rpc ListGod(ListGodReq) returns (ListGodRes);
+  // 请求接口2
+  rpc ListGodTemple(ListGodTempleReq) returns (ListGodTempleRes);
 `,
 	})
 	configs = append(configs, ParserConfig{
