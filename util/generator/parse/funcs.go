@@ -22,6 +22,7 @@ func GetFuncMap() template.FuncMap {
 		"InterfaceToString":     InterfaceToString,
 		"InterfaceToJsonString": InterfaceToJsonString,
 		"HasPrefix":             strings.HasPrefix,
+		"JsonIndent":            JsonIndent,
 	}
 }
 
@@ -113,4 +114,12 @@ func InterfaceToString(v interface{}) string {
 func InterfaceToJsonString(v interface{}) string {
 	bs, _ := json.Marshal(v)
 	return string(bs)
+}
+
+func JsonIndent(v interface{}) string {
+	dataJson, err := json.MarshalIndent(v, "", "\t")
+	if err != nil {
+		return ""
+	}
+	return string(dataJson)
 }
