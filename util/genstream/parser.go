@@ -52,6 +52,8 @@ func NewParserFunc(parserType ParserType) ParserFunc {
 		return ParserFuncRow
 	case ParserTypeJson:
 		return ParserFuncJson
+	case ParserTypeCreateSql:
+		return ParserFuncCreateSql
 	case ParserTypeReg:
 		return ParserFuncReg
 	case ParserTypeSplit:

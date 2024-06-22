@@ -1,6 +1,7 @@
 package genstream
 
 import (
+	"coco-server/util/generator"
 	"coco-server/util/log"
 	"context"
 	"encoding/json"
@@ -60,6 +61,14 @@ func ParserFuncJson(ctx context.Context, req *ParserReq, res *ParserRes) error {
 	if err != nil {
 		return err
 	}
+
+	req.Obj = obj
+	return nil
+}
+
+// 建表语句
+func ParserFuncCreateSql(ctx context.Context, req *ParserReq, res *ParserRes) error {
+	obj := generator.ParserSQL2(req.Text)
 
 	req.Obj = obj
 	return nil

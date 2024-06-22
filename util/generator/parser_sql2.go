@@ -23,6 +23,7 @@ type SqlField struct {
 	ColName string `json:"colName"`
 	ColType string `json:"colType"`
 	Comment string `json:"comment"`
+	GoType  string `json:"goType"`
 }
 
 type SqlFoot struct {
@@ -30,7 +31,7 @@ type SqlFoot struct {
 }
 
 func CalSqlHead(line string) *SqlHead {
-	headReg := regexp.MustCompile("^\\s*CREATE\\s+TABLE\\s+([a-zA-Z0-9_`]+\\.)?([a-zA-Z0-9_`]+)\\s*\\(\\s*$") // CREATE TABLE tbl_name
+	headReg := regexp.MustCompile("^\\s*CREATE\\s+TABLE\\s+([a-zA-Z0-9_`]+\\.)?([a-zA-Z0-9_`]+)\\s*\\(?\\s*$") // CREATE TABLE tbl_name
 	if !headReg.MatchString(line) {
 		return nil
 	}
@@ -46,7 +47,7 @@ func CalSqlHead(line string) *SqlHead {
 }
 
 func CalSqlField(line string) *SqlField {
-	fieldReg := regexp.MustCompile("^\\s*([a-zA-Z0-9_`]+)\\s+([a-zA-Z0-9()]+)\\s+") // col_name column_definition
+	fieldReg := regexp.MustCompile("^\\s*([a-zA-Z0-9_`]+)\\s+([a-zA-Z0-9]+)\\(?[0-9]*\\)?\\s+") // col_name column_definition
 	if !fieldReg.MatchString(line) {
 		return nil
 	}
@@ -54,9 +55,18 @@ func CalSqlField(line string) *SqlField {
 	if len(submatch) < 3 {
 		return nil
 	}
+	colType := strings.ToLower(submatch[2])
+	colTypeToGoTypeMap := map[string]string{
+		"int":      "int64",
+		"varchar":  "string",
+		"json":     "string",
+		"datetime": "time.Time",
+	}
+
 	res := &SqlField{
 		ColName: strings.Trim(submatch[1], "`"),
-		ColType: submatch[2],
+		ColType: colType,
+		GoType:  colTypeToGoTypeMap[colType],
 	}
 
 	fieldCommentReg := regexp.MustCompile("\\s+COMMENT\\s+'(.+)',?\\s*$") // COMMENT

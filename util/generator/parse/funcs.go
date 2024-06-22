@@ -23,6 +23,7 @@ func GetFuncMap() template.FuncMap {
 		"InterfaceToJsonString": InterfaceToJsonString,
 		"HasPrefix":             strings.HasPrefix,
 		"JsonIndent":            JsonIndent,
+		"Backquote":             Backquote,
 	}
 }
 
@@ -122,4 +123,8 @@ func JsonIndent(v interface{}) string {
 		return ""
 	}
 	return string(dataJson)
+}
+
+func Backquote() string {
+	return "`"
 }
