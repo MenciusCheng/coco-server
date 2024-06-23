@@ -1,6 +1,7 @@
 package genstream
 
 import (
+	"coco-server/util/genstream/demo_tmpl"
 	"context"
 	"fmt"
 	"os"
@@ -30,20 +31,13 @@ func TestGenStream_CRUD_conf(t *testing.T) {
 	configs = append(configs, ParserConfig{
 		Type: "temp",
 		Opts: []ParserOption{{Type: "name", Value: "model/{{ .Obj.tableName }}.go"}},
-		Text: `
-{{- $objName := sToUCamel .Obj.tableName -}}
-// {{ .Obj.comment }}
-type {{ $objName }} struct {
-{{- range $index, $row := .Obj.rows }}
-	// {{ .comment }}
-	{{ sToUCamel .colName }} {{ .goType }} {{ Backquote }}gorm:"column:{{ .colName }}" json:"{{ sToLCamel .colName }}"{{ Backquote }}
-{{- end }}
-}
+		Text: demo_tmpl.CrudModel,
+	})
 
-func (obj *{{ $objName }}) TableName() string {
-	return "{{ .Obj.tableName }}"
-}
-`,
+	configs = append(configs, ParserConfig{
+		Type: "temp",
+		Opts: []ParserOption{{Type: "name", Value: "dao/{{ .Obj.tableName }}.go"}},
+		Text: demo_tmpl.CrudDao,
 	})
 
 	res, err := NewGenStream(configs).Gen(context.TODO())

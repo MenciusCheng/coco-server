@@ -1,0 +1,69 @@
+{{- $objName := sToUCamel .Obj.tableName -}}
+{{- $objLowName := sToLCamel .Obj.tableName -}}
+type {{ $objLowName }}Dao struct {
+	table string
+}
+
+var {{ $objName }}DB = &{{ $objLowName }}Dao{
+	table: (&model.{{ $objName }}{}).TableName(),
+}
+
+type Query{{ $objName }}Filter struct {
+{{- range $index, $row := .Obj.rows }}{{- if eq .colName "id" "created_at" "updated_at"}}{{continue}}{{end}}
+	{{ sToUCamel .colName }} {{ .goType }} `json:"{{ sToLCamel .colName }}"`
+{{- end }}
+	Offset   int    `json:"offset"`
+	Limit    int    `json:"limit"`
+}
+
+func (dao *{{ $objLowName }}Dao) Query(ctx context.Context, filter *Query{{ $objName }}Filter) ([]*model.{{ $objName }}, int64, error) {
+	var (
+		records = make([]*model.{{ $objName }}, 0)
+		count   int64
+	)
+
+	query := db.MySQLCon.Table(dao.table)
+{{- range $index, $row := .Obj.rows }}{{- if eq .colName "id" "created_at" "updated_at"}}{{continue}}{{end}}
+	if filter.{{ sToUCamel .colName }} != "" {
+        query = query.Where("{{ .colName }}=?", filter.{{ sToUCamel .colName }})
+    }
+{{- end }}
+
+	err := query.Count(&count).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	err = query.Order("id desc").Offset(filter.Offset).Limit(filter.Limit).Scan(&records).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	return records, count, nil
+}
+
+func (dao *{{ $objLowName }}Dao) Create(ctx context.Context, v *model.{{ $objName }}) (int64, error) {
+	err := db.MySQLCon.Omit("created_at", "updated_at").Create(&v).Error
+	return v.Id, err
+}
+
+func (dao *{{ $objLowName }}Dao) Save(ctx context.Context, v *model.{{ $objName }}) (int64, error) {
+	err := db.MySQLCon.Omit("created_at", "updated_at").Save(&v).Error
+	return v.Id, err
+}
+
+func (dao *{{ $objLowName }}Dao) Update(ctx context.Context, v *model.{{ $objName }}) error {
+	updates := map[string]interface{}{
+{{- range $index, $row := .Obj.rows }}{{- if eq .colName "id" "created_at" "updated_at"}}{{continue}}{{end}}
+		"{{ .colName }}": v.{{ sToUCamel .colName }},
+{{- end }}
+	}
+	err := db.MySQLCon.Model(dao.table).
+		Where("id=?", v.Id).
+		UpdateColumns(updates).
+		Error
+	return err
+}
+
+func (dao *{{ $objLowName }}Dao) Delete(ctx context.Context, id int64) error {
+	sql := fmt.Sprintf("DELETE FROM %s WHERE `id`=?", dao.table)
+	return db.MySQLCon.Exec(sql, id).Error
+}

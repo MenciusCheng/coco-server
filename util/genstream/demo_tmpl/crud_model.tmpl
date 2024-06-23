@@ -1,0 +1,12 @@
+{{- $objName := sToUCamel .Obj.tableName -}}
+// {{ .Obj.comment }}
+type {{ $objName }} struct {
+{{- range $index, $row := .Obj.rows }}
+	// {{ .comment }}
+	{{ sToUCamel .colName }} {{ .goType }} {{ Backquote }}gorm:"{{if eq .colName "id" }}primary_key;{{end}}column:{{ .colName }}" json:"{{ sToLCamel .colName }}"{{ Backquote }}
+{{- end }}
+}
+
+func (obj *{{ $objName }}) TableName() string {
+	return "{{ .Obj.tableName }}"
+}
