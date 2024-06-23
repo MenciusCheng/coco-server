@@ -29,24 +29,21 @@ func TestGenStream_CRUD_conf(t *testing.T) {
 
 	configs = append(configs, ParserConfig{
 		Type: "temp",
+		Opts: []ParserOption{{Type: "name", Value: "model/{{ .Obj.tableName }}.go"}},
 		Text: `
-{{ $objName := SnakeToCamel .Obj.tableName }}
-file: {{ .Obj.tableName }}.go
-
+{{- $objName := sToUCamel .Obj.tableName -}}
 // {{ .Obj.comment }}
 type {{ $objName }} struct {
 {{- range $index, $row := .Obj.rows }}
 	// {{ .comment }}
-	{{ SnakeToCamel .colName }} {{ .goType }} {{ Backquote }}gorm:"column:{{ .colName }}" json:"{{ LowerFirst ( SnakeToCamel .colName ) }}"{{ Backquote }}
+	{{ sToUCamel .colName }} {{ .goType }} {{ Backquote }}gorm:"column:{{ .colName }}" json:"{{ sToLCamel .colName }}"{{ Backquote }}
 {{- end }}
 }
 
-// get table name of {{ $objName }}
 func (obj *{{ $objName }}) TableName() string {
 	return "{{ .Obj.tableName }}"
 }
 `,
-		Opts: []ParserOption{{Type: "name", Value: "model"}},
 	})
 
 	res, err := NewGenStream(configs).Gen(context.TODO())

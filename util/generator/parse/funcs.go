@@ -9,22 +9,24 @@ import (
 	"unicode"
 )
 
+var funcMap = template.FuncMap{
+	"IsInStringSlice":       IsInStringSlice,
+	"IfElse":                IfElse,
+	"UpperFirst":            UpperFirst,
+	"UpperFirst2":           UpperFirst2,
+	"LowerFirst":            LowerFirst,
+	"SnakeCase":             SnakeCase,
+	"SnakeToCamel":          SnakeToCamel,
+	"FloatToIntString":      FloatToIntString,
+	"InterfaceToString":     InterfaceToString,
+	"InterfaceToJsonString": InterfaceToJsonString,
+	"HasPrefix":             strings.HasPrefix,
+	"JsonIndent":            JsonIndent,
+	"Backquote":             Backquote,
+}
+
 func GetFuncMap() template.FuncMap {
-	return template.FuncMap{
-		"IsInStringSlice":       IsInStringSlice,
-		"IfElse":                IfElse,
-		"UpperFirst":            UpperFirst,
-		"UpperFirst2":           UpperFirst2,
-		"LowerFirst":            LowerFirst,
-		"SnakeCase":             SnakeCase,
-		"SnakeToCamel":          SnakeToCamel,
-		"FloatToIntString":      FloatToIntString,
-		"InterfaceToString":     InterfaceToString,
-		"InterfaceToJsonString": InterfaceToJsonString,
-		"HasPrefix":             strings.HasPrefix,
-		"JsonIndent":            JsonIndent,
-		"Backquote":             Backquote,
-	}
+	return funcMap
 }
 
 func IsInStringSlice(el string, arr []interface{}) bool {
