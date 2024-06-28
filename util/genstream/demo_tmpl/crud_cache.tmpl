@@ -1,7 +1,13 @@
-{{- $UName := sToUCamel .Obj.tableName -}}
-{{- $LName := sToLCamel .Obj.tableName -}}
+{{- $obj := .Obj -}}
+{{- $UName := sToUCamel $obj.tableName -}}
+{{- $LName := sToLCamel $obj.tableName -}}
 const (
-	cache{{ $UName }}LogList       = "activity:{{ $LName }}:logList:%s"                  // {{ .Obj.comment }} 记录列表缓存 15 md5
+	cache{{ $UName }}LogList       = "activity:{{ $LName }}:logList:%s"                  // {{ $obj.comment }} 记录列表缓存 15 md5
+{{- range $index, $row := .Obj.rows }}
+    {{- if eq .type "lock" }}
+	cache{{ $UName }}{{ sToUp0 .name }}Lock = "activity:{{ $LName }}:{{ .name }}Lock:%d_%d_%d" // {{ $obj.comment }} {{ .comment }} 子活动ID_榜单ID_group
+    {{- end }}
+{{- end }}
 )
 
 type {{ $LName }}Cache struct {
@@ -40,3 +46,25 @@ func (c *{{ $LName }}Cache) SetLogList(ctx context.Context, md5Str string, data 
 	}
 	return nil
 }
+
+{{- range $index, $row := .Obj.rows }}
+    {{- if eq .type "lock" }}
+func (c *{{ $LName }}Cache) Has{{ sToUp0 .name }}Lock(ctx context.Context, relId int32, rankConfId int32, group int64) bool {
+	key := fmt.Sprintf(cache{{ $UName }}{{ sToUp0 .name }}Lock, relId, rankConfId, group)
+	num, err := db.RedisCon2.Get(key).Int64()
+	if err != nil {
+		return false
+	}
+	return num > 0
+}
+
+func (c *{{ $LName }}Cache) Lock{{ sToUp0 .name }}Lock(ctx context.Context, relId int32, rankConfId int32, group int64, nowSec, expire int64) bool {
+	key := fmt.Sprintf(cache{{ $UName }}{{ sToUp0 .name }}Lock, relId, rankConfId, group)
+	b, err := db.RedisCon2.SetNX(key, nowSec, time.Duration(expire)*time.Second).Result()
+	if err != nil {
+		return false
+	}
+	return b
+}
+    {{- end }}
+{{- end }}

@@ -56,6 +56,13 @@ func TestGenStream_CRUD_cache(t *testing.T) {
 	jsonMap := map[string]interface{}{
 		"tableName": "demo_table",
 		"comment":   "注释",
+		"rows": []map[string]interface{}{
+			{
+				"type":    "lock",
+				"name":    "demoAbc",
+				"comment": "abc锁",
+			},
+		},
 	}
 	jsonBytes, _ := json.Marshal(jsonMap)
 	configs = append(configs, ParserConfig{
