@@ -3,6 +3,7 @@ package genstream
 import (
 	"coco-server/util/genstream/demo_tmpl"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -38,6 +39,34 @@ func TestGenStream_CRUD_conf(t *testing.T) {
 		Type: "temp",
 		Opts: []ParserOption{{Type: "name", Value: "dao/{{ .Obj.tableName }}.go"}},
 		Text: demo_tmpl.CrudDao,
+	})
+
+	res, err := NewGenStream(configs).Gen(context.TODO())
+	if err != nil {
+		t.Errorf("Gen err = %v", err)
+		return
+	}
+	// 生成结果
+	fmt.Println(res.Show())
+}
+
+func TestGenStream_CRUD_cache(t *testing.T) {
+	configs := make([]ParserConfig, 0)
+
+	jsonMap := map[string]interface{}{
+		"tableName": "demo_table",
+		"comment":   "注释",
+	}
+	jsonBytes, _ := json.Marshal(jsonMap)
+	configs = append(configs, ParserConfig{
+		Type: ParserTypeJson,
+		Text: string(jsonBytes),
+	})
+
+	configs = append(configs, ParserConfig{
+		Type: "temp",
+		Opts: []ParserOption{{Type: "name", Value: "cache/{{ .Obj.tableName }}.go"}},
+		Text: demo_tmpl.CrudCache,
 	})
 
 	res, err := NewGenStream(configs).Gen(context.TODO())

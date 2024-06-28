@@ -10,3 +10,6 @@ var CrudModel string
 
 //go:embed crud_dao.tmpl
 var CrudDao string
+
+//go:embed crud_cache.tmpl
+var CrudCache string

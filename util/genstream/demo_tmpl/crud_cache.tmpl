@@ -1,0 +1,42 @@
+{{- $UName := sToUCamel .Obj.tableName -}}
+{{- $LName := sToLCamel .Obj.tableName -}}
+const (
+	cache{{ $UName }}LogList       = "activity:{{ $LName }}:logList:%s"                  // {{ .Obj.comment }} 记录列表缓存 15 md5
+)
+
+type {{ $LName }}Cache struct {
+}
+
+var {{ $UName }}Cache = new({{ $LName }}Cache)
+
+func (c *{{ $LName }}Cache) GetLogList(ctx context.Context, md5Str string) (*pb.List{{ $UName }}RecordRes, error) {
+	key := fmt.Sprintf(cache{{ $UName }}LogList, md5Str)
+	b, err := uredis.GetString(db.RedisCon2, key)
+	if err == redis.Nil {
+		return nil, nil
+	}
+	if err != nil {
+		xlog.Warn(ctx, "GetString failed", zap.String("md5Str", md5Str), zap.Error(err))
+		return nil, err
+	}
+	if b == nil {
+		return nil, nil
+	}
+	res := new(pb.List{{ $UName }}RecordRes)
+	err = json.Unmarshal(b, res)
+	if err != nil {
+		xlog.Warn(ctx, "Unmarshal failed", zap.String("md5Str", md5Str), zap.Error(err))
+		return nil, err
+	}
+	return res, nil
+}
+
+func (c *{{ $LName }}Cache) SetLogList(ctx context.Context, md5Str string, data interface{}) error {
+	key := fmt.Sprintf(cache{{ $UName }}LogList, md5Str)
+	b, _ := json.Marshal(data)
+	err := uredis.SetString(db.RedisCon2, key, b, 15)
+	if err != nil {
+		return err
+	}
+	return nil
+}
