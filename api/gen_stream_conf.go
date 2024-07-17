@@ -13,6 +13,7 @@ func init() {
 	routerGroup.POST("/genStreamConf/create", GenStreamConfApi.Create)
 	routerGroup.POST("/genStreamConf/update", GenStreamConfApi.Update)
 	routerGroup.POST("/genStreamConf/delete", GenStreamConfApi.Delete)
+	routerGroup.POST("/genStreamConf/gen", GenStreamConfApi.Gen)
 }
 
 type genStreamConfApi struct{}
@@ -75,6 +76,23 @@ func (a *genStreamConfApi) Delete(c *gin.Context) {
 		return
 	}
 	res, err := service.GenStreamConfService.Delete(ctx, req)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	response.OkWithData(res, c)
+	return
+}
+
+func (a *genStreamConfApi) Gen(c *gin.Context) {
+	ctx := c.Request.Context()
+	req := new(model.GenStreamConfGenReq)
+	if err := c.ShouldBind(&req); err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	res, err := service.GenStreamConfService.Gen(ctx, req)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

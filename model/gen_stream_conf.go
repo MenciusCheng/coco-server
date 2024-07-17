@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"coco-server/util/genstream"
+	"time"
+)
 
 // 流式生成器配置
 type GenStreamConf struct {
@@ -55,4 +58,19 @@ type GenStreamConfDeleteReq struct {
 }
 
 type GenStreamConfDeleteRes struct {
+}
+
+type GenStreamConfGenReq struct {
+	Configs []GenStreamConfGenConfig `json:"configs"` // 配置列表
+}
+
+type GenStreamConfGenConfig genstream.ParserConfig
+
+type GenStreamConfGenRes struct {
+	List []GenStreamConfGenData `json:"list"`
+}
+
+type GenStreamConfGenData struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
 }

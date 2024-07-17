@@ -5,7 +5,7 @@ import (
 )
 
 type GenStream struct {
-	Configs []ParserConfig `json:"parserConfigs"`
+	Configs []ParserConfig `json:"configs"`
 }
 
 func NewGenStream(configs []ParserConfig) *GenStream {
