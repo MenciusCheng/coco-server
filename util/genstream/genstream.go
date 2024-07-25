@@ -18,9 +18,7 @@ func (g *GenStream) Gen(ctx context.Context) (*ParserRes, error) {
 	req := &ParserReq{}
 	res := &ParserRes{}
 	for _, config := range g.Configs {
-		if len(config.Text) > 0 {
-			req.Text = config.Text
-		}
+		req.Text = config.Text
 		req.Opts = config.Opts
 		parserFunc := NewParserFunc(config.Type)
 
