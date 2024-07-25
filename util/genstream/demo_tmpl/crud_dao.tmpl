@@ -56,7 +56,7 @@ func (dao *{{ $objLowName }}Dao) Update(ctx context.Context, v *model.{{ $objNam
 		"{{ .colName }}": v.{{ sToUCamel .colName }},
 {{- end }}
 	}
-	err := db.MySQLCon.Model(dao.table).
+	err := db.MySQLCon.Table(dao.table).
 		Where("id=?", v.Id).
 		UpdateColumns(updates).
 		Error
