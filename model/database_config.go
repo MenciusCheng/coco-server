@@ -18,3 +18,12 @@ type DatabaseConfig struct {
 func (obj *DatabaseConfig) TableName() string {
 	return "database_config"
 }
+
+type TestConnectionRequest struct {
+	Name     string `json:"name"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Database string `json:"database"`
+}

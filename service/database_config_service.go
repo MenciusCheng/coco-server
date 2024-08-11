@@ -55,6 +55,29 @@ func (service *IDatabaseConfigService) DeleteDatabaseConfig(id uint) error {
 	return db.MySQLCon.Delete(&model.DatabaseConfig{}, id).Error
 }
 
+func (service *IDatabaseConfigService) TestDatabaseConfig(req *model.TestConnectionRequest) error {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		req.Username, req.Password, req.Host, req.Port, req.Database)
+
+	// 测试数据库连接
+	mdb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return err
+	}
+
+	sqlDB, err := mdb.DB()
+	if err != nil {
+		return err
+	}
+
+	// Ping数据库以验证连接
+	if err := sqlDB.Ping(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // =========== table
 
 // GetDatabases retrieves all databases in a given MySQL server configuration
@@ -222,7 +245,22 @@ func (service *IDatabaseConfigService) GetTableData(configID uint, dbName, table
 		results = append(results, row)
 	}
 
-	return results, nil
+	// UTF-8 解码
+	decodedRows := make([]map[string]interface{}, len(results))
+	for i, row := range results {
+		decodedRow := make(map[string]interface{})
+		for key, value := range row {
+			strValue, ok := value.([]uint8)
+			if ok {
+				decodedRow[key] = decodeUTF8String(strValue)
+			} else {
+				decodedRow[key] = value
+			}
+		}
+		decodedRows[i] = decodedRow
+	}
+
+	return decodedRows, nil
 }
 
 // ExecuteSQL executes a custom SQL statement on a specific database
@@ -273,5 +311,25 @@ func (service *IDatabaseConfigService) ExecuteSQL(configID uint, dbName, sqlStat
 		results = append(results, row)
 	}
 
-	return results, nil
+	// UTF-8 解码
+	decodedRows := make([]map[string]interface{}, len(results))
+	for i, row := range results {
+		decodedRow := make(map[string]interface{})
+		for key, value := range row {
+			strValue, ok := value.([]uint8)
+			if ok {
+				decodedRow[key] = decodeUTF8String(strValue)
+			} else {
+				decodedRow[key] = value
+			}
+		}
+		decodedRows[i] = decodedRow
+	}
+
+	return decodedRows, nil
+}
+
+func decodeUTF8String(input []uint8) string {
+	// 解码为 UTF-8 字符串
+	return string(input)
 }
