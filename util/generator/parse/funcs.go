@@ -23,6 +23,7 @@ var funcMap = template.FuncMap{
 	"HasPrefix":             strings.HasPrefix,
 	"JsonIndent":            JsonIndent,
 	"Backquote":             Backquote,
+	"IsNotLast":             IsNotLast,
 }
 
 func GetFuncMap() template.FuncMap {
@@ -129,4 +130,8 @@ func JsonIndent(v interface{}) string {
 
 func Backquote() string {
 	return "`"
+}
+
+func IsNotLast(index int, arr []interface{}) bool {
+	return index < len(arr)-1
 }
