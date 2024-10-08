@@ -1,8 +1,9 @@
 module coco-server
 
-go 1.21
+go 1.23.0
 
 require (
+	github.com/MenciusCheng/go-util v0.0.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/redis/go-redis/v9 v9.5.1
 	go.uber.org/zap v1.27.0

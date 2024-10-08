@@ -4,8 +4,8 @@ import (
 	"coco-server/dao"
 	"coco-server/model"
 	"coco-server/model/common/request"
-	"coco-server/util/log"
 	"context"
+	"github.com/MenciusCheng/go-util/log"
 	"go.uber.org/zap"
 )
 
