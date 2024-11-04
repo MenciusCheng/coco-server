@@ -20,6 +20,7 @@ func (g *GenStream) Gen(ctx context.Context) (*ParserRes, error) {
 	for _, config := range g.Configs {
 		req.Text = config.Text
 		req.Opts = config.Opts
+		req.OptMap = GetOptionMap(req.Opts)
 		parserFunc := NewParserFunc(config.Type)
 
 		if err := parserFunc(ctx, req, res); err != nil {

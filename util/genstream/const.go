@@ -1,5 +1,7 @@
 package genstream
 
+import "strings"
+
 type ParserType string
 
 const (
@@ -25,6 +27,7 @@ const (
 	ParserOptionTypeName    ParserOptionType = "name"    // 名称
 	ParserOptionTypeSep     ParserOptionType = "sep"     // 分隔符
 	ParserOptionTypeReplace ParserOptionType = "replace" // 替换文本
+	ParserOptionTypeMap     ParserOptionType = "map"     // 字典
 )
 
 func GetOptionName(opts []ParserOption) string {
@@ -52,4 +55,20 @@ func GetOptionReplace(opts []ParserOption) string {
 		}
 	}
 	return ""
+}
+
+func GetOptionMap(opts []ParserOption) map[string]string {
+	m := make(map[string]string)
+	for _, opt := range opts {
+		if opt.Type == ParserOptionTypeMap {
+			for _, kv := range strings.Split(opt.Value, "\n") {
+				splitKV := strings.Split(kv, ":")
+				if len(splitKV) != 2 {
+					continue
+				}
+				m[strings.TrimSpace(splitKV[0])] = strings.TrimSpace(splitKV[1])
+			}
+		}
+	}
+	return m
 }

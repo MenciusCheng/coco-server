@@ -68,7 +68,7 @@ func ParserFuncJson(ctx context.Context, req *ParserReq, res *ParserRes) error {
 
 // 建表语句
 func ParserFuncCreateSql(ctx context.Context, req *ParserReq, res *ParserRes) error {
-	obj := generator.ParserSQL2(req.Text)
+	obj := generator.ParserSQL2(req.Text, req.OptMap)
 
 	req.Obj = obj
 	return nil

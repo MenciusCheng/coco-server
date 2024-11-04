@@ -18,10 +18,11 @@ type ParserOption struct {
 }
 
 type ParserReq struct {
-	Text string                 `json:"text"` // 文本
-	Opts []ParserOption         `json:"opts"` // 选项
-	Rows [][]string             `json:"rows"` // 行列文本
-	Obj  map[string]interface{} `json:"obj"`  // obj数据
+	Text   string                 `json:"text"`   // 文本
+	Opts   []ParserOption         `json:"opts"`   // 选项
+	Rows   [][]string             `json:"rows"`   // 行列文本
+	Obj    map[string]interface{} `json:"obj"`    // obj数据
+	OptMap map[string]string      `json:"optMap"` // 选项字典
 }
 
 type ParserRes struct {

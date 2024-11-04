@@ -46,7 +46,7 @@ func CalSqlHead(line string) *SqlHead {
 	}
 }
 
-func CalSqlField(line string) *SqlField {
+func CalSqlField(line string, colNameGoTypeMap map[string]string) *SqlField {
 	fieldReg := regexp.MustCompile("^\\s*([a-zA-Z0-9_`]+)\\s+([a-zA-Z0-9]+)\\(?[0-9]*\\)?\\s+") // col_name column_definition
 	if !fieldReg.MatchString(line) {
 		return nil
@@ -55,18 +55,27 @@ func CalSqlField(line string) *SqlField {
 	if len(submatch) < 3 {
 		return nil
 	}
+	colName := strings.Trim(submatch[1], "`")
 	colType := strings.ToLower(submatch[2])
+
 	colTypeToGoTypeMap := map[string]string{
 		"int":      "int64",
+		"bigint":   "int64",
 		"varchar":  "string",
 		"json":     "string",
 		"datetime": "time.Time",
 	}
+	goType := ""
+	if goTypeVal, ok := colNameGoTypeMap[colName]; ok {
+		goType = goTypeVal
+	} else if goTypeVal, ok := colTypeToGoTypeMap[colType]; ok {
+		goType = goTypeVal
+	}
 
 	res := &SqlField{
-		ColName: strings.Trim(submatch[1], "`"),
+		ColName: colName,
 		ColType: colType,
-		GoType:  colTypeToGoTypeMap[colType],
+		GoType:  goType,
 	}
 
 	fieldCommentReg := regexp.MustCompile("\\s+COMMENT\\s+'(.+)',?\\s*$") // COMMENT
@@ -93,7 +102,12 @@ func CalSqlFoot(line string) *SqlFoot {
 	return res
 }
 
-func ParserSQL2(text string) map[string]interface{} {
+func ParserSQL2NoMap(text string) map[string]interface{} {
+	// 兼容旧函数签名
+	return ParserSQL2(text, nil)
+}
+
+func ParserSQL2(text string, colNameGoTypeMap map[string]string) map[string]interface{} {
 	res := make(map[string]interface{})
 
 	sqlTable := SqlTable{}
@@ -114,11 +128,8 @@ func ParserSQL2(text string) map[string]interface{} {
 			if sqlHead != nil {
 				sqlTable.TableName = sqlHead.TableName
 			}
-		} else if CalSqlField(lineData) != nil {
-			sqlField := CalSqlField(lineData)
-			if sqlField != nil {
-				sqlTable.Rows = append(sqlTable.Rows, *sqlField)
-			}
+		} else if sqlField := CalSqlField(lineData, colNameGoTypeMap); sqlField != nil {
+			sqlTable.Rows = append(sqlTable.Rows, *sqlField)
 		} else if CalSqlFoot(lineData) != nil {
 			sqlFoot := CalSqlFoot(lineData)
 			if sqlFoot != nil {

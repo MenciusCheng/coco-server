@@ -59,7 +59,7 @@ func (s *dataConvertService) Gen(ctx context.Context, req *model.DataConvertGenR
 	case "sql":
 		g = generator.NewGenerator(generator.ConfigParser(generator.ParserSQL))
 	case "sql2":
-		g = generator.NewGenerator(generator.ConfigParser(generator.ParserSQL2))
+		g = generator.NewGenerator(generator.ConfigParser(generator.ParserSQL2NoMap))
 	default:
 		g = generator.NewGenerator(generator.ConfigParser(generator.ParserTabRow))
 	}
