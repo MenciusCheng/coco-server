@@ -6,11 +6,12 @@ import (
 )
 
 type FolderService struct {
-	DAO *dao.FolderDAO
+	DAO         *dao.FolderDAO
+	BookmarkDAO *dao.BookmarkDAO
 }
 
-func NewFolderService(dao *dao.FolderDAO) *FolderService {
-	return &FolderService{DAO: dao}
+func NewFolderService(dao *dao.FolderDAO, BookmarkDAO *dao.BookmarkDAO) *FolderService {
+	return &FolderService{DAO: dao, BookmarkDAO: BookmarkDAO}
 }
 
 func (s *FolderService) Create(folder *model.Folder) error {
@@ -29,49 +30,43 @@ func (s *FolderService) Delete(id uint) error {
 	return s.DAO.Delete(id)
 }
 
-func (s *FolderService) GetFolderTree() ([]model.FolderTree, error) {
-	// 获取所有根文件夹（假设根文件夹的 ParentID 为 0）
-	rootFolders, err := s.DAO.GetFoldersByParentID(0)
+func (s *FolderService) GetFolderTree() ([]*model.FolderTree, error) {
+	folders, err := s.DAO.GetAllFolders()
 	if err != nil {
 		return nil, err
 	}
 
-	var folderTrees []model.FolderTree
-	for _, folder := range rootFolders {
-		folderTree, err := s.buildFolderTree(folder)
-		if err != nil {
-			return nil, err
-		}
-		folderTrees = append(folderTrees, folderTree)
-	}
-
-	return folderTrees, nil
-}
-
-func (s *FolderService) buildFolderTree(folder model.Folder) (model.FolderTree, error) {
-	bookmarks, err := s.DAO.GetBookmarksByFolderID(folder.ID)
+	bookmarks, err := s.BookmarkDAO.GetAllBookmarks()
 	if err != nil {
-		return model.FolderTree{}, err
+		return nil, err
 	}
 
-	childFolders, err := s.DAO.GetFoldersByParentID(folder.ID)
-	if err != nil {
-		return model.FolderTree{}, err
-	}
-
-	var subFolders []model.FolderTree
-	for _, childFolder := range childFolders {
-		subFolderTree, err := s.buildFolderTree(childFolder)
-		if err != nil {
-			return model.FolderTree{}, err
+	folderMap := make(map[uint]*model.FolderTree)
+	for _, folder := range folders {
+		folderMap[folder.ID] = &model.FolderTree{
+			ID:         folder.ID,
+			Name:       folder.Name,
+			Bookmarks:  []*model.Bookmark{},
+			SubFolders: []*model.FolderTree{},
 		}
-		subFolders = append(subFolders, subFolderTree)
 	}
 
-	return model.FolderTree{
-		ID:         folder.ID,
-		Name:       folder.Name,
-		Bookmarks:  bookmarks,
-		SubFolders: subFolders,
-	}, nil
+	for _, bookmark := range bookmarks {
+		if folder, exists := folderMap[bookmark.FolderID]; exists {
+			folder.Bookmarks = append(folder.Bookmarks, bookmark)
+		}
+	}
+
+	var rootFolders []*model.FolderTree
+	for _, folder := range folders {
+		if folder.ParentFolderID == 0 {
+			rootFolders = append(rootFolders, folderMap[folder.ID])
+		} else {
+			if parentFolder, exists := folderMap[folder.ParentFolderID]; exists {
+				parentFolder.SubFolders = append(parentFolder.SubFolders, folderMap[folder.ID])
+			}
+		}
+	}
+
+	return rootFolders, nil
 }

@@ -35,18 +35,18 @@ func (dao *FolderDAO) Delete(id uint) error {
 	return dao.DB.Delete(&model.Folder{}, id).Error
 }
 
-func (d *FolderDAO) GetFoldersByParentID(parentID uint) ([]model.Folder, error) {
+func (dao *FolderDAO) GetFoldersByParentID(parentID uint) ([]model.Folder, error) {
 	var folders []model.Folder
-	if err := d.DB.Where("parent_folder_id = ?", parentID).Find(&folders).Error; err != nil {
+	if err := dao.DB.Where("parent_folder_id = ?", parentID).Find(&folders).Error; err != nil {
 		return nil, err
 	}
 	return folders, nil
 }
 
-func (d *FolderDAO) GetBookmarksByFolderID(folderID uint) ([]model.Bookmark, error) {
-	var bookmarks []model.Bookmark
-	if err := d.DB.Where("folder_id = ?", folderID).Find(&bookmarks).Error; err != nil {
+func (dao *FolderDAO) GetAllFolders() ([]*model.Folder, error) {
+	var folders []*model.Folder
+	if err := dao.DB.Find(&folders).Error; err != nil {
 		return nil, err
 	}
-	return bookmarks, nil
+	return folders, nil
 }

@@ -15,7 +15,7 @@ func Setup(r *gin.RouterGroup, db *gorm.DB) {
 
 	// 初始化服务层
 	bookmarkService := service.NewBookmarkService(bookmarkDAO)
-	folderService := service.NewFolderService(folderDAO)
+	folderService := service.NewFolderService(folderDAO, bookmarkDAO)
 
 	// 初始化 API 层
 	bookmarkAPI := api.NewBookmarkAPI(bookmarkService)

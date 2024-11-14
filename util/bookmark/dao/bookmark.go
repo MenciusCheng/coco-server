@@ -34,3 +34,19 @@ func (dao *BookmarkDAO) Update(bookmark *model.Bookmark) error {
 func (dao *BookmarkDAO) Delete(id uint) error {
 	return dao.DB.Delete(&model.Bookmark{}, id).Error
 }
+
+func (dao *BookmarkDAO) GetBookmarksByFolderID(folderID uint) ([]*model.Bookmark, error) {
+	var bookmarks []*model.Bookmark
+	if err := dao.DB.Where("folder_id = ?", folderID).Find(&bookmarks).Error; err != nil {
+		return nil, err
+	}
+	return bookmarks, nil
+}
+
+func (dao *BookmarkDAO) GetAllBookmarks() ([]*model.Bookmark, error) {
+	var bookmarks []*model.Bookmark
+	if err := dao.DB.Find(&bookmarks).Error; err != nil {
+		return nil, err
+	}
+	return bookmarks, nil
+}
