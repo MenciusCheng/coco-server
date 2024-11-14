@@ -4,6 +4,7 @@ import (
 	"coco-server/api"
 	"coco-server/conf"
 	"coco-server/middleware/db"
+	"coco-server/util/bookmark"
 	"context"
 	"flag"
 	"github.com/MenciusCheng/go-util/log"
@@ -26,6 +27,9 @@ func main() {
 
 	// init api
 	api.InitApi(ctx)
+
+	// 插件
+	bookmark.Setup(api.GetRouterGroup(), db.MySQLCon)
 
 	log.Info(ctx, "Server Start", zap.String("ServiceName", conf.Conf.ServiceName), zap.Any("port", conf.Conf.Api.Port))
 	quit := make(chan os.Signal)
