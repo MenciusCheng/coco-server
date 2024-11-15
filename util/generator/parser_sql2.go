@@ -63,6 +63,7 @@ func CalSqlField(line string, colNameGoTypeMap map[string]string) *SqlField {
 		"bigint":   "int64",
 		"varchar":  "string",
 		"json":     "string",
+		"text":     "string",
 		"datetime": "time.Time",
 	}
 	goType := ""
