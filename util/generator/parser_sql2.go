@@ -65,6 +65,7 @@ func CalSqlField(line string, colNameGoTypeMap map[string]string) *SqlField {
 		"json":     "string",
 		"text":     "string",
 		"datetime": "time.Time",
+		"tinyint":  "int32",
 	}
 	goType := ""
 	if goTypeVal, ok := colNameGoTypeMap[colName]; ok {
