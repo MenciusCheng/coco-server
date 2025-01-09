@@ -18,6 +18,10 @@ func main() {
 	// init config
 	var configPath string
 	flag.StringVar(&configPath, "c", "", "Configuration file")
+	// 解析命令行参数
+	flag.Parse()
+
+	// 初始化配置
 	conf.Init(ctx, configPath)
 
 	// init db

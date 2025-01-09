@@ -26,6 +26,7 @@ func Init(ctx context.Context, configPath string) {
 		log.Error(ctx, "Unmarshal", zap.Error(err))
 		panic(err)
 	}
+	log.Info(ctx, "Load config", zap.Any("configPath", configPath), zap.Any("config", Conf))
 }
 
 //go:embed config/dev/config.json

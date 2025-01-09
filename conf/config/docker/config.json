@@ -1,0 +1,19 @@
+{
+  "serviceName": "bookmark-manager",
+  "api": {
+    "port": 9390
+  },
+  "databases": [
+    {
+      "name": "coco",
+      "master": "root:@tcp(host.docker.internal:3306)/coco?charset=utf8mb4&parseTime=True&loc=Local"
+    }
+  ],
+  "redisConfigs": [
+    {
+      "addr": "host.docker.internal:6379",
+      "password": "",
+      "database": 0
+    }
+  ]
+}
