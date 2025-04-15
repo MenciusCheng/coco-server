@@ -44,3 +44,19 @@ docker-compose up
 ## 访问服务
 
 服务启动后，默认监听 9390 端口，可以通过以下地址访问：http://localhost:9390
+
+## 备份数据库
+
+进入备份目录，如：`../coco-db-backup`
+
+### 导出数据库
+
+```
+mysqldump -uroot -p coco > coco_20250415.sql
+```
+
+### 导入数据库
+
+```
+mysql -uroot -p coco > coco_20250415.sql
+```
