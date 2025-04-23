@@ -123,7 +123,7 @@ func ParserSQL2(text string, colNameGoTypeMap map[string]string) map[string]inte
 
 		if strings.HasPrefix(lineData, "PRIMARY KEY") {
 			// 预留
-		} else if strings.HasPrefix(lineData, "KEY") {
+		} else if strings.HasPrefix(lineData, "KEY") || strings.HasPrefix(lineData, "UNIQUE KEY") {
 			// 预留
 		} else if CalSqlHead(lineData) != nil {
 			sqlHead := CalSqlHead(lineData)

@@ -20,7 +20,11 @@ func (g *GenStream) Gen(ctx context.Context) (*ParserRes, error) {
 	for _, config := range g.Configs {
 		req.Text = config.Text
 		req.Opts = config.Opts
-		req.OptMap = GetOptionMap(req.Opts)
+		configOptMap := GetOptionMap(config.Opts)
+		for k, v := range configOptMap {
+			// 字典选项可以继承上一个 OptMap
+			req.OptMap[k] = v
+		}
 		parserFunc := NewParserFunc(config.Type)
 
 		if err := parserFunc(ctx, req, res); err != nil {
