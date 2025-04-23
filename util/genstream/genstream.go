@@ -15,7 +15,9 @@ func NewGenStream(configs []ParserConfig) *GenStream {
 }
 
 func (g *GenStream) Gen(ctx context.Context) (*ParserRes, error) {
-	req := &ParserReq{}
+	req := &ParserReq{
+		OptMap: make(map[string]string),
+	}
 	res := &ParserRes{}
 	for _, config := range g.Configs {
 		req.Text = config.Text
