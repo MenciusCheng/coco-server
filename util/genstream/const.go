@@ -6,11 +6,12 @@ type ParserType string
 
 const (
 	// 输入类型解析器
-	ParserTypeText      ParserType = "text"
-	ParserTypeLine      ParserType = "line"
-	ParserTypeRow       ParserType = "row"
-	ParserTypeJson      ParserType = "json"
-	ParserTypeCreateSql ParserType = "createSql"
+	ParserTypeText         ParserType = "text"
+	ParserTypeLine         ParserType = "line"
+	ParserTypeRow          ParserType = "row"
+	ParserTypeJson         ParserType = "json"
+	ParserTypeCreateSql    ParserType = "createSql"
+	ParserTypeProtoService ParserType = "protoService"
 
 	// 转换类型解析器
 	ParserTypeReg   ParserType = "reg"
