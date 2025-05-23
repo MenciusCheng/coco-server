@@ -198,7 +198,7 @@ func parseProtoService(protoContent string) []*ProtoService {
 					Name:       matches[3],
 					Comment:    currentComment,
 				}
-				if matches[1] == "repeated" {
+				if strings.TrimSpace(matches[1]) == "repeated" {
 					reqField.IsRepeated = true
 				}
 				if matches[4] != "" {
