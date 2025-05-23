@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"go.uber.org/zap"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -101,10 +102,19 @@ type ProtoService struct {
 }
 
 type RPCMethod struct {
-	Name    string `json:"name"`
-	Req     string `json:"req"`
-	Res     string `json:"res"`
-	Comment string `json:"comment"`
+	Name      string      `json:"name"`
+	Req       string      `json:"req"`
+	ReqFields []*ReqField `json:"req_fields"`
+	Res       string      `json:"res"`
+	Comment   string      `json:"comment"`
+}
+
+type ReqField struct {
+	IsRepeated bool   `json:"is_repeated"`
+	Type       string `json:"type"`
+	Name       string `json:"name"`
+	Seq        int    `json:"seq"`
+	Comment    string `json:"comment"`
 }
 
 // 使用正则表达式解析proto服务接口定义的函数
@@ -113,9 +123,14 @@ func parseProtoService(protoContent string) []*ProtoService {
 	var services []*ProtoService
 	var currentService *ProtoService
 	var currentComment string
+	var currentMessage string
+	reqFieldsMapByMessage := make(map[string][]*ReqField)
 
-	servicePattern := regexp.MustCompile(`service\s+(\w+)\s*{`)
-	rpcPattern := regexp.MustCompile(`rpc\s+(\w+)\s*\((\w+)\)\s*returns\s*\((\w+)\);`)
+	servicePattern := regexp.MustCompile(`^\s*service\s+(\w+)\s*{`)
+	rpcPattern := regexp.MustCompile(`^\s*rpc\s+(\w+)\s*\((\w+)\)\s*returns\s*\((\w+)\);`)
+	messagePattern := regexp.MustCompile(`^\s*message\s+(\w+)\s*{`)
+	reqFieldPattern := regexp.MustCompile(`^\s*(repeated\s+)?(\w+)\s+(\w+)\s*=\s*(\d+)\s*;`)
+	reqFieldCommentPattern := regexp.MustCompile(`\s*;\s*//\s*(.+)$`)
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -135,17 +150,61 @@ func parseProtoService(protoContent string) []*ProtoService {
 					Methods: []*RPCMethod{},
 				}
 				currentComment = "" // 清空注释
+				currentMessage = "" // 请求结构体定义
 			}
 		} else if rpcPattern.MatchString(line) {
 			// 解析rpc方法
 			matches := rpcPattern.FindStringSubmatch(line)
 			if len(matches) == 4 && currentService != nil {
-				currentService.Methods = append(currentService.Methods, &RPCMethod{
-					Name:    matches[1],
-					Req:     matches[2],
-					Res:     matches[3],
-					Comment: currentComment,
-				})
+				rpcMethod := &RPCMethod{
+					Name:      matches[1],
+					Req:       matches[2],
+					ReqFields: make([]*ReqField, 0),
+					Res:       matches[3],
+					Comment:   currentComment,
+				}
+				if reqFields, ok := reqFieldsMapByMessage[rpcMethod.Req]; ok {
+					rpcMethod.ReqFields = reqFields
+				}
+
+				currentService.Methods = append(currentService.Methods, rpcMethod)
+				currentComment = "" // 清空注释
+			}
+		} else if messagePattern.MatchString(line) {
+			// 结构体定义
+			matches := messagePattern.FindStringSubmatch(line)
+			if len(matches) == 2 {
+				currentMessage = matches[1]
+				if _, ok := reqFieldsMapByMessage[currentMessage]; !ok {
+					reqFieldsMapByMessage[currentMessage] = make([]*ReqField, 0)
+				}
+				currentComment = "" // 清空注释
+			}
+		} else if reqFieldPattern.MatchString(line) && currentMessage != "" {
+			// 结构体字段定义
+			matches := reqFieldPattern.FindStringSubmatch(line)
+			if len(matches) == 5 {
+				// 匹配行末注释
+				if reqFieldCommentPattern.MatchString(line) {
+					commentMatches := reqFieldCommentPattern.FindStringSubmatch(line)
+					if len(commentMatches) == 2 {
+						currentComment = strings.TrimSpace(commentMatches[1])
+					}
+				}
+
+				reqField := &ReqField{
+					IsRepeated: false,
+					Type:       matches[2],
+					Name:       matches[3],
+					Comment:    currentComment,
+				}
+				if matches[1] == "repeated" {
+					reqField.IsRepeated = true
+				}
+				if matches[4] != "" {
+					reqField.Seq, _ = strconv.Atoi(matches[4])
+				}
+				reqFieldsMapByMessage[currentMessage] = append(reqFieldsMapByMessage[currentMessage], reqField)
 				currentComment = "" // 清空注释
 			}
 		}
